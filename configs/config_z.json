@@ -1,0 +1,85 @@
+{
+    "wandb": {
+        "mode": "disabled",
+        "checkpoint": "checkpoint_name",
+        "fork_checkpoint": false,
+        "project": "project_name",
+        "wandb_prefix": "wandb_prefix",
+        "dir": "wandb_dir"
+    },
+    "local": {
+        "checkpoint_model": null,
+        "checkpoint_discriminator": null
+    },
+    "checkpoint_dir": "path/to/checkpoints",
+    "seed": 123,
+    "learning_rate": 0.0001,
+    "dataset": "Jamendo, LibriTTS",
+    "train_datafile": "data/train.txt",
+    "validation_datafile": "data/val_short.txt",
+    "n_epochs": 500000,
+    "step_checkpoint": 10000,
+    "step_media_log": 2000,
+    "batch_grad_log": 2000,
+    "batch_size": 32,
+    "sample_rate": 44100,
+    "exp_gamma": 0.9995,
+    "adam_b1": 0.8,
+    "adam_b2": 0.99,
+    "segment_size": 16384,
+    "segment_size_val": 262144,
+    "n_cache_reuse": 30,
+    "num_workers": 4,
+    "prefetch_factor": 2,
+    "use_discriminator": true,
+    "unfreeze": {
+        "steps": 100000,
+        "loss_multiplier": {
+            "loss_z": 0,
+            "loss_ms_mel": 15,
+            "loss_ms_stft": 1,
+            "loss_adv_gen": 1,
+            "loss_adv_feat": 2,
+            "loss_waveform": 1
+        }
+    },
+    "model": {
+        "latent_dim": 1024,
+        "n_codebooks": 9,
+        "codebook_dim": 8,
+        "codebook_size": 1024,
+        "n_resblocks": 6,
+        "initial_out_channels": 1024,
+        "intermediate_dim": 1152,
+        "resblock_type": "AMP",
+        "resblock_kernel_sizes": [3, 3, 7, 7, 11, 11],
+        "resblock_dilations": [[1, 3, 5], [1, 3, 5], [1, 3, 5], [1, 3, 5], [1, 3, 5], [1, 3, 5]],
+        "predict_type": "z",
+        "activation": "snake"
+    },
+    "disc": {
+        "resolutions": [[1024, 120, 600], [2048, 240, 1200], [512, 50, 240]],
+        "periods": [2, 3, 5, 7, 11],
+        "discriminator_channel_mult": 1,
+        "use_spectral_norm": false
+    },
+    "mel": {
+        "n_fft": 1024,
+        "win_length": 1024,
+        "hop_length": 256,
+        "f_min": 0,
+        "f_max": null,
+        "n_mels": 128
+    },
+    "loss_multiplier": {
+        "loss_z": 15,
+        "loss_ms_mel": 15,
+        "loss_ms_stft": 1,
+        "loss_adv_gen": 1,
+        "loss_adv_feat": 2,
+        "loss_waveform": 1
+    },
+    "backend": {
+        "master_port": 12359
+    }
+}
