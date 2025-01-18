@@ -82,6 +82,5 @@ def main():
     inference(args, encoder, config, device, args.normalize_volume)
 
 
-
 if __name__ == '__main__':
     main()

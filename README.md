@@ -33,12 +33,12 @@ audio_path = "clip.wav"
 # load pretrained DisCoder model
 discoder = DisCoder.from_pretrained("disco-eth/discoder").eval().to(device)
 
-# load 44.1 kHz audio
+# load and pad 44.1 kHz audio file
 audio_org, _ = meldataset.load_wav(full_path=audio_path, sr_target=discoder.config["sample_rate"], resample=True, normalize=True)
 audio = torch.tensor(audio_org).unsqueeze(dim=0).to(device)
-# audio padding
 to_pad = discoder.config["segment_size"] - (audio.shape[-1] % discoder.config["segment_size"])
 audio = torch.nn.functional.pad(audio, pad=(0, to_pad), mode="constant", value=0)
+
 # create mel spectrogram
 mel = utils.get_mel_spectrogram_from_config(audio, discoder.config)  # [B, 128, frames]
 
@@ -53,7 +53,7 @@ display(Audio(wav_recon.squeeze().cpu().numpy(), rate=discoder.config["sample_ra
 
 
 ## Training
-To calculate [ViSQOL](https://github.com/google/visqol) during validation, install the required library by following the steps below:
+To calculate [ViSQOL](https://github.com/google/visqol) during validation, install the library by following the steps below:
 ```shell
 cd discoder
 git clone https://github.com/google/visqol
@@ -72,6 +72,6 @@ python -u train.py --config configs/config_z.json
 The inference script allows batch processing of audio files. It converts all WAV files in the specified `input_dir` to
 mel spectrograms, then reconstructs them into audio files in the `output_dir`.
 ```shell
-python -u inference.py --input_dir input_dir --output_dir output_dir --checkpoint_file model.pt --config  configs/config_z.json
+python -u inference.py --input_dir input_dir --output_dir output_dir --checkpoint_file model.pt --config configs/config_z.json
 ```
 You can also pass the `normalize_volume` flag to standardize the output volume.
