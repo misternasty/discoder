@@ -16,7 +16,7 @@ def inference(args, encoder: torch.nn.Module, config: dict, device, normalize_vo
     filelist = os.listdir(args.input_dir)
     os.makedirs(args.output_dir, exist_ok=True)
 
-    meter = pyln.Meter(rate=44100)
+    meter = pyln.Meter(rate=config["sample_rate"])
     with torch.no_grad():
         for i, filename in enumerate(filelist):
             print(os.path.join(args.input_dir, filename))
@@ -36,7 +36,7 @@ def inference(args, encoder: torch.nn.Module, config: dict, device, normalize_vo
 
             # normalize volume
             if normalize_volume:
-                audio_org, _ = librosa.load(os.path.join(args.input_dir, filename), sr=44100)
+                audio_org, _ = librosa.load(os.path.join(args.input_dir, filename), sr=config["sample_rate"])
                 loudness = meter.integrated_loudness(audio_org.astype(np.float32))
                 wav_recon = torch.tensor(meldataset.normalize_custom(wav_recon.squeeze().cpu().numpy(), db=loudness)).unsqueeze(dim=0).to(device)
 
@@ -61,25 +61,23 @@ def main():
     with open(args.config_file, "r") as config_file:
         config = json.load(config_file)
 
-    dac_model = dac.DAC.load(str(dac.utils.download(model_type=utils.sample_rate_str(44100))))
+    dac_model = dac.DAC.load(str(dac.utils.download(model_type=utils.sample_rate_str(config["sample_rate"]))))
     encoder = DisCoder(
         config=config,
         dac_decoder=dac_model.decoder,
         dac_encoder_quantizer=dac_model.quantizer
     )
     state_dict = torch.load(args.checkpoint_file, map_location=device)
+    training_step = state_dict["training_step"]
     state_dict = {k.replace("module.", ""): v for k, v in state_dict["model_state_dict"].items()}
     encoder.load_state_dict(state_dict, strict=False)
     encoder.eval()
 
+    # unfreeze decoder
+    encoder.frozen_decoder = training_step < config["unfreeze"]["steps"]
+
     encoder = encoder.to(device)
     torch.manual_seed(config["seed"])
-
-    model_path = dac.utils.download(model_type=utils.sample_rate_str(config["sample_rate"]))
-    dac_model = dac.DAC.load(model_path)
-    for param in dac_model.parameters():
-        param.requires_grad = False
-    dac_model.eval()
 
     inference(args, encoder, config, device, args.normalize_volume)
 
