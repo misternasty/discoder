@@ -172,7 +172,7 @@ class DisCoder(nn.Module, PyTorchModelHubMixin):
         *,
         model_id: str,
         revision: str,
-        cache_dir: str,
+        run_dir: str,
         force_download: bool,
         proxies: Optional[Dict],
         resume_download: bool,
@@ -184,17 +184,7 @@ class DisCoder(nn.Module, PyTorchModelHubMixin):
         """Load Pytorch pretrained weights and return the loaded model."""
 
         # Load config
-        config_file = hf_hub_download(
-            repo_id=model_id,
-            filename="config.json",
-            revision=revision,
-            cache_dir=cache_dir,
-            force_download=force_download,
-            proxies=proxies,
-            resume_download=resume_download,
-            token=token,
-            local_files_only=local_files_only,
-        )
+        config_file = f"{run_dir}/config.json"
         with open(config_file, "r") as config_file:
             config = json.load(config_file)
 
@@ -207,18 +197,9 @@ class DisCoder(nn.Module, PyTorchModelHubMixin):
         )
 
         # Load model
-        model_file = hf_hub_download(
-            repo_id=model_id,
-            filename="model.pt",
-            revision=revision,
-            cache_dir=cache_dir,
-            force_download=force_download,
-            proxies=proxies,
-            resume_download=resume_download,
-            token=token,
-            local_files_only=local_files_only,
-        )
-        state_dict = torch.load(model_file, map_location=map_location)
+        model_file = f"{run_dir}/model.pt"
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        state_dict = torch.load(model_file, map_location=device)
         model_state_dict = {k.replace("module.", ""): v for k, v in state_dict["model_state_dict"].items()}
         model.load_state_dict(model_state_dict, strict=False)
         model.frozen_decoder = False
