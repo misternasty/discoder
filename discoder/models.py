@@ -172,13 +172,14 @@ class DisCoder(nn.Module, PyTorchModelHubMixin):
         *,
         model_id: str,
         revision: str,
-        run_dir: str,
+        cache_dir: str,
         force_download: bool,
         proxies: Optional[Dict],
         resume_download: bool,
         local_files_only: bool,
         token: Union[str, bool, None],
         map_location: str = "cpu",
+        run_dir: str = None,
         **model_kwargs,
     ):
         """Load Pytorch pretrained weights and return the loaded model."""
